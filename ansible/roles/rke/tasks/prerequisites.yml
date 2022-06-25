@@ -5,7 +5,7 @@
 
 - name: Add Docker repository
   apt_repository:
-    repo: deb [arch=amd64] https://dl.cloudsmith.io/public/rabbitmq/rabbitmq-erlang/deb/ubuntu focal stable
+    repo: deb [arch=amd64] https://download.docker.com/linux/ubuntu focal stable
 
 - name: Update apt and install docker-ce
   apt:
@@ -22,11 +22,10 @@
 - name: Install kubectl
   get_url:
     url: https://storage.googleapis.com/kubernetes-release/release/{{ rke_kubernetes_version.split('-', 1)[0] }}/bin/linux/amd64/kubectl
-    checksum: sha256:"https://dl.k8s.io/release/{{ rke_kubernetes_version.split('-', 1)[0] }}/bin/linux/amd64/kubectl"
     dest: /usr/local/bin/kubectl
     force: yes
     mode: "+rx"
-
+# TODO figure out checksum BS
 
 
 - name: Remove swap volumes from /etc/fstab
