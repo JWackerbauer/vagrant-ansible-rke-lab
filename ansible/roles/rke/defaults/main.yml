@@ -8,14 +8,22 @@ kubernetes_supported_versions:
   "1.23": v1.23.7-rancher1-1
 
 # Default Kubernetes minor version
-kubernetes_version: "1.23"
+kubernetes_version: "1.22"
 
+rke_force_configure: false
+
+cluster_name: rke01
+
+rke_config_dir: .rke
 rke_release: v1.3.12
 rke_binary_url: "https://github.com/rancher/rke/releases/download/{{ rke_release }}/rke_linux-amd64"
 rke_binary_checksum: sha256:579da2206aec09cadccd8d6f4818861e78a256b6ae550a229335e500a472bd50
 rke_kubernetes_version: "{{ kubernetes_supported_versions[kubernetes_version] }}"
 
 rke_ssh_user: rke
+
+rke_ssh_private_key: "{{ lookup('file', 'keys/{{ cluster_name }}/id_rsa') }}"
+rke_ssh_public_key: "{{ lookup('file', 'keys/{{ cluster_name }}/id_rsa.pub') }}"
 
 # This is the host that will run 'rke up'
 # By default, use the first host in the play

@@ -1,0 +1,50 @@
+# Install, configure and run Rancher Kubernetes Engine (RKE) on the target hosts to configure a Kubernetes cluster
+
+- name: Download RKE binary
+  get_url:
+    url: "{{ rke_binary_url }}"
+    checksum: "{{ rke_binary_checksum }}"
+    dest: /usr/local/bin/rke
+    mode: "+rx"
+  register: rke_binary
+
+- name: Ensure config directory exists
+  file:
+    path: "{{ rke_config_dir }}"
+    state: directory
+
+- name: Create/update RKE config file
+  template:
+    src: rke_cluster.yml
+    dest: "{{ rke_config_dir }}/cluster.yml"
+    mode: u=rw,g=r,o=
+  register: rke_cluster_config
+
+- name: Run RKE installer
+  shell: |
+    rke up
+  args:
+    chdir: "{{ rke_config_dir }}"
+  when: rke_binary is changed or rke_cluster_config is changed or rke_force_configure
+
+- name: Ensure $HOME/.kube exists
+  file:
+    path: "{{ ansible_env.HOME }}/.kube"
+    state: directory
+
+- name: Copy kubeconfig to default location
+  copy:
+    remote_src: yes
+    src: "{{ rke_config_dir }}/kube_config_cluster.yml"
+    dest: "{{ ansible_env.HOME }}/.kube/config"
+
+- name: Remove master node taint
+  shell: |
+    kubectl taint nodes {{ cluster_name }}-master-0 node.cloudprovider.kubernetes.io/uninitialized-
+  when: rke_binary is changed or rke_cluster_config is changed or rke_force_configure
+
+- name: Remove worker node taint
+  shell: |
+    kubectl taint nodes {{ cluster_name }}-worker-{{ item }}  node.cloudprovider.kubernetes.io/uninitialized-
+  loop: "{{ range(0, cluster_num_workers , 1)|list }}" 
+  when: rke_binary is changed or rke_cluster_config is changed or rke_force_configure

@@ -13,11 +13,17 @@
     state: latest
     update_cache: true
 
-- name: Add RKE SSH user to dockerroot group
+- name: Add RKE SSH user to docker group
   user:
     name: "{{ rke_ssh_user }}"
     groups: [docker]
     append: yes
+
+- name: Set authorized key for RKE SSH user
+  ansible.posix.authorized_key:
+    user: "{{ rke_ssh_user }}"
+    state: present
+    key: "{{ rke_ssh_public_key }}"
 
 - name: Install kubectl
   get_url:
