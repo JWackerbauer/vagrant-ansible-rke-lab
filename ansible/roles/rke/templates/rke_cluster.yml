@@ -6,8 +6,8 @@ kubernetes_version: "{{ rke_kubernetes_version }}"
 
 nodes:
 {% for host in ansible_play_hosts %}
-  - hostname_override: "{{ hostvars[host].ansible_hostname }}"
-    address: "{{ hostvars[host]['ansible_' + cluster_interface].ipv4.address }}"
+
+  - address: "{{ hostvars[host]['ansible_' + cluster_interface].ipv4.address }}"
     user: {{ rke_ssh_user }}
     role:
       {{ hostvars[host].rke_node_roles.split(',') | to_nice_yaml(indent=2) | indent(width=6) }}

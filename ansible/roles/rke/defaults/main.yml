@@ -1,29 +1,29 @@
 # Map of Kubernetes minor version to RKE Kubernetes version
+
+
+
 kubernetes_supported_versions:
   "1.18": v1.18.20-rancher1-3
   "1.19": v1.19.16-rancher1-6
   "1.20": v1.20.15-rancher1-4
-  "1.21": v1.21.13-rancher1-1
-  "1.22": v1.22.10-rancher1-1
-  "1.23": v1.23.7-rancher1-1
 
 # Default Kubernetes minor version
-kubernetes_version: "1.22"
+kubernetes_version: "1.19"
 
 rke_force_configure: false
 
 cluster_name: rke01
 
-rke_config_dir: .rke
-rke_release: v1.3.12
-rke_binary_url: "https://github.com/rancher/rke/releases/download/{{ rke_release }}/rke_linux-amd64"
-rke_binary_checksum: sha256:579da2206aec09cadccd8d6f4818861e78a256b6ae550a229335e500a472bd50
-rke_kubernetes_version: "{{ kubernetes_supported_versions[kubernetes_version] }}"
-
 rke_ssh_user: rke
 
-rke_ssh_private_key: "{{ lookup('file', 'keys/{{ cluster_name }}/id_rsa') }}"
-rke_ssh_public_key: "{{ lookup('file', 'keys/{{ cluster_name }}/id_rsa.pub') }}"
+
+rke_config_dir: home/{{ rke_ssh_user }}
+log_path: "{{ rke_config_dir }}/ansible.log"
+
+rke_release: v1.2.21
+rke_binary_url: "https://github.com/rancher/rke/releases/download/{{ rke_release }}/rke_linux-amd64"
+rke_binary_checksum: sha256:a873ab943143cd453e74b0fe0f6c5e6d8a9bba991695f4ffc2a21c4431d1a8ef
+rke_kubernetes_version: "{{ kubernetes_supported_versions[kubernetes_version] }}"
 
 # This is the host that will run 'rke up'
 # By default, use the first host in the play

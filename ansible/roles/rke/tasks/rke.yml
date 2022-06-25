@@ -6,6 +6,8 @@
     checksum: "{{ rke_binary_checksum }}"
     dest: /usr/local/bin/rke
     mode: "+rx"
+    force: yes
+  become: yes
   register: rke_binary
 
 - name: Ensure config directory exists
@@ -26,6 +28,7 @@
   args:
     chdir: "{{ rke_config_dir }}"
   when: rke_binary is changed or rke_cluster_config is changed or rke_force_configure
+  become: yes
 
 - name: Ensure $HOME/.kube exists
   file:
@@ -37,6 +40,8 @@
     remote_src: yes
     src: "{{ rke_config_dir }}/kube_config_cluster.yml"
     dest: "{{ ansible_env.HOME }}/.kube/config"
+    owner: "{{ rke_ssh_user }}"
+  become: yes
 
 - name: Remove master node taint
   shell: |

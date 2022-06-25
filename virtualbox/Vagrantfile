@@ -1,0 +1,37 @@
+NODES=3
+IP_NW="192.168.56."
+IP_START=10
+PROVIDER="virtualbox"
+
+Vagrant.configure(2) do |config|
+
+  (1..NODES).each do |i|
+    config.vm.define "node0#{i}" do |node|
+      node.vm.box = "ubuntu/focal64"
+      node.vm.hostname = "node0#{i}"
+      node.vm.network "private_network", ip: IP_NW + "#{IP_START + i}"
+      if i == NODES
+        node.vm.provision :ansible do |ansible|
+          ansible.host_vars = {}
+          (1..NODES).each do |j|
+            ansible.host_vars["node0#{j}"] = {}
+            if j == 1
+              ansible.host_vars["node0#{j}"]["rke_node_roles"] = "controlplane,etcd"
+            else
+              ansible.host_vars["node0#{j}"]["rke_node_roles"] = "worker"
+            end
+          end
+          ansible.limit = "all"
+          ansible.verbose = "v"
+          ansible.playbook = "../ansible/playbook.yml"
+          ansible.extra_vars = {
+            rke_ssh_private_key: "{{ lookup(\"file\", \"{{ ansible_ssh_private_key_file }}\" ) }}",
+            cluster_interface: "enp0s8",
+            rke_controller_hostname: "node01",
+            rke_ssh_user: "vagrant"
+          }
+        end
+      end
+    end
+  end
+end

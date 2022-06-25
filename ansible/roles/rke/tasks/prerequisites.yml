@@ -2,28 +2,34 @@
 - name: Install Docker key
   apt_key:
     url: https://download.docker.com/linux/ubuntu/gpg
+  become: yes
 
 - name: Add Docker repository
   apt_repository:
     repo: deb [arch=amd64] https://download.docker.com/linux/ubuntu focal stable
+  become: yes
 
 - name: Update apt and install docker-ce
   apt:
     name: docker-ce
     state: latest
     update_cache: true
+  become: yes
 
 - name: Add RKE SSH user to docker group
   user:
     name: "{{ rke_ssh_user }}"
     groups: [docker]
     append: yes
+  become: yes
 
 - name: Set authorized key for RKE SSH user
   ansible.posix.authorized_key:
     user: "{{ rke_ssh_user }}"
     state: present
     key: "{{ rke_ssh_public_key }}"
+  become: yes
+  when: rke_ssh_public_key is defined
 
 - name: Install kubectl
   get_url:
@@ -31,6 +37,7 @@
     dest: /usr/local/bin/kubectl
     force: yes
     mode: "+rx"
+  become: yes
 # TODO figure out checksum BS
 
 
@@ -41,7 +48,9 @@
     # This should match all lines with an fstype of "swap"
     regexp: '^[^\s]+\s+[^\s]+\s+swap\s+'
   register: remove_swap_volumes
+  become: yes
 
 - name: Disable swap
   command: swapoff --all
   when: remove_swap_volumes is changed
+  become: yes
