@@ -24,11 +24,11 @@
 
 - name: Run RKE installer
   shell: |
-    rke up
+    rke up > rke-up-$(date '+%Y-%m-%d_%H:%M:%S').log 2>&1
   args:
     chdir: "{{ rke_config_dir }}"
   when: rke_binary is changed or rke_cluster_config is changed or rke_force_configure
-  become: yes
+  #TODO: better check for what should be done with rke 
 
 - name: Ensure $HOME/.kube exists
   file:
@@ -41,15 +41,22 @@
     src: "{{ rke_config_dir }}/kube_config_cluster.yml"
     dest: "{{ ansible_env.HOME }}/.kube/config"
     owner: "{{ rke_ssh_user }}"
-  become: yes
+    mode: "u=rw"
 
-- name: Remove master node taint
-  shell: |
-    kubectl taint nodes {{ cluster_name }}-master-0 node.cloudprovider.kubernetes.io/uninitialized-
-  when: rke_binary is changed or rke_cluster_config is changed or rke_force_configure
+- name: Add stable Rancher chart repo
+  shell: helm repo add rancher-stable https://releases.rancher.com/server-charts/stable && helm repo update
 
-- name: Remove worker node taint
-  shell: |
-    kubectl taint nodes {{ cluster_name }}-worker-{{ item }}  node.cloudprovider.kubernetes.io/uninitialized-
-  loop: "{{ range(0, cluster_num_workers , 1)|list }}" 
-  when: rke_binary is changed or rke_cluster_config is changed or rke_force_configure
+- name: Deploy Rancher
+  kubernetes.core.helm:
+    release_name: rancher
+    chart_ref: rancher-stable/rancher
+    release_namespace: cattle-system
+    create_namespace: true
+    chart_version: "{{ rancher.version }}"
+    values:
+      hostname: "{{ rancher.hostname }}"
+      bootstrapPassword: "{{ rancher.bootstrapPassword }}"
+      ingress:
+        tls:
+          source: "{{ rancher.tls_source }}"
+  when: rancher.enabled

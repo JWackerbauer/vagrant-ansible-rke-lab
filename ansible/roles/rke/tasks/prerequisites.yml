@@ -1,4 +1,5 @@
 ---
+
 - name: Install Docker key
   apt_key:
     url: https://download.docker.com/linux/ubuntu/gpg
@@ -39,6 +40,23 @@
     mode: "+rx"
   become: yes
 # TODO figure out checksum BS
+
+- name: Install Helm key
+  apt_key:
+    url: https://baltocdn.com/helm/signing.asc
+  become: yes
+
+- name: Add Helm repository
+  apt_repository:
+    repo: deb [arch=amd64] https://baltocdn.com/helm/stable/debian/ all main
+  become: yes
+
+- name: Update apt and install helm
+  apt:
+    name: helm
+    state: latest
+    update_cache: true
+  become: yes
 
 
 - name: Remove swap volumes from /etc/fstab

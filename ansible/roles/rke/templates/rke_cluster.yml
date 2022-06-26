@@ -6,17 +6,19 @@ kubernetes_version: "{{ rke_kubernetes_version }}"
 
 nodes:
 {% for host in ansible_play_hosts %}
-
-  - address: "{{ hostvars[host]['ansible_' + cluster_interface].ipv4.address }}"
+  - hostname_override: "{{ hostvars[host].ansible_hostname }}"
+    address: {{ hostvars[host].adress }}
     user: {{ rke_ssh_user }}
     role:
       {{ hostvars[host].rke_node_roles.split(',') | to_nice_yaml(indent=2) | indent(width=6) }}
     ssh_key: |-
-      {{ rke_ssh_private_key | indent(width=6) }}
+      {{ lookup("file", hostvars[host].ansible_ssh_private_key_file ) | indent(width=6) }}
 {% endfor %}
 
 network:
   {{ rke_network_config | to_nice_yaml(indent=2) | indent(width=2) }}
 
+{% if rke_ingress_config is defined %}
 ingress:
   {{ rke_ingress_config | to_nice_yaml(indent=2) | indent(width=2) }}
+{% endif %}
