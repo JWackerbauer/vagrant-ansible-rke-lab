@@ -44,7 +44,7 @@ rke_ingress_config:
 
 rancher: 
   enabled: true
-  version: "2.5.14"
+  version: "2.6"
   hostname: rancher.{{ cluster_name }}.int.compax.at
   bootstrapPassword: admin
   tls_source: secret
